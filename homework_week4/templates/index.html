@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+            integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+            crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+            integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+            crossorigin="anonymous"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Gamja+Flower&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            font-family: 'Gamja Flower', cursive;
+            font-size: 20px;
+        }
+
+        .main-image {
+            background-image: url("http://m.honeytem.co.kr/web/product/big/20191212/aa4855ac71348fd33fb19e2cf642ac84.jpg");
+            color: white;
+            width: 500px;
+            height: 500px;
+
+            background-size: cover;
+            background-position: center;
+            margin: auto;
+            border: 10px solid black;
+        }
+
+        .wrap {
+            width: 600px;
+            margin: 10px auto;
+            background-color: aliceblue;
+        }
+
+        .mid-text {
+            font-size: 30px;
+        }
+
+        .form-group {
+            margin-top: 10px;
+        }
+
+        .btn {
+            margin: auto;
+            display: block;
+        }
+
+        .exchangeRate {
+            color: blue;
+        }
+
+         table {
+            width: 600px;
+            border: 1px solid gray;
+            border-collapse: collapse;
+        }
+
+        tr,
+        th {
+            padding: 10px;
+            border-bottom: 1px solid gray;
+            height: 50px;
+        }
+
+    </style>
+    <script>
+        $(document).ready( function () {
+             $("#orderList").html("");
+            showExchaneRate();
+            showOrders();
+        });
+
+        function showExchaneRate() {
+            $.ajax({
+                type: "GET",
+                url: "https://api.manana.kr/exchange/rate.json",
+                data: {},
+                success: function (res) {
+                    const rate = res[1]['rate'];
+                    $('#daler').text(rate);
+                },
+            });
+        }
+
+        function showOrders() {
+            $.ajax({
+                type: "GET",
+                url: "/order",
+                data: {},
+                success: function (response) {
+                    if (response["result"] == "success") {
+                        const orderList = response["orders"];
+                        for (let i = 0; i < orderList.length; i++) {
+                            const order = orderList[i];
+                            makeOrder(order['name'], order['orderQty'], order['address'], order['phone']);
+                        }
+                    }
+                }
+            })
+        }
+
+        function makeOrder(name, orderQty, address, phone) {
+            const tempHtml = `<tr>
+                                <td>${name}</td>
+                                <td>${orderQty}</td>
+                                <td>${address}</td>
+                                <td>${phone}</td>
+                            </tr>`;
+            $('#orderList').append(tempHtml);
+        };
+
+        function order() {
+            const name = $('#orderName').val();
+            if( name === '' ) {
+                alert( '이름을 입력해주세요!' );
+                $('#orderName').focus();
+                return;
+            }
+
+            const qty = $('#inputGroupSelect01').val();
+            if( !$.isNumeric(qty) ) {
+                alert( '수량을 선택해주세요!' );
+                $('#inputGroupSelect01').focus();
+                return;
+            }
+
+            const addr = $('#addr').val();
+            if( addr === '' ) {
+                alert( '주소를 입력해주세요!' );
+                $('#addr').focus();
+                return;
+            }
+
+            const phone = $('#phone').val();
+            if( phone === '' ) {
+                alert( '전화번호를 입력해주세요!' );
+                $('#phone').focus();
+                return;
+            } else {
+                const regPhone = /(01[0|1|6|9|7]|02|0[3-9]{1}[0-9]{1})[-](\d{3}|\d{4})[-](\d{4}$)/g;
+                // 이런 방식으로 진행해도 됨. /010-?\d{3,4}-?\d{4}/.test(phone.val());
+                if( !regPhone.test(phone) ) {
+                    alert( '전화번호 형식이 잘못되었습니다!' );
+                    $('#phone').focus();
+                    return;
+                }
+            }
+
+            $.ajax({
+                type: "POST",
+                url: "/order",
+                data: {
+                    "name_give": name,
+                    "qty_give": qty,
+                    "addr_give": addr,
+                    "phone_give": phone
+                },
+                success: function (response) {
+                    if (response["result"] == "success") {
+                        alert(response["msg"]);
+                        location.reload();
+                    }
+                }
+            })
+        }
+    </script>
+    <title>과제</title>
+</head>
+<body>
+    <div class="wrap">
+        <div class="main-image"></div>
+        <div class="data">
+            <form>
+                <div class="form-group">
+                    <label for="exampleFormControlInput1">
+                        <h1>쁘띠 통통 니트 & 소프트 퍼 엣지 겨울 목도리 퍼플러
+                            <span class="mid-text">가격 : 10000원</span>
+                        </h1>
+                    </label>
+                    <p>포근 포근, 따뜻 따뜻한 목도리 팝니다. 다가오는 겨울을 대비하세요!</p>
+                    <hr>
+                    <h1>주문하기</h1>
+                    <div class="exchangeRate">달러-원 환율: <span id="daler"></span></div>
+                    <div class="input-group mb-3">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text" id="basic-addon1">주문자 이름</span>
+                        </div>
+                        <input type="text" id="orderName" class="form-control">
+                    </div>
+
+                    <div class="input-group mb-3">
+                        <div class="input-group-prepend">
+                            <label class="input-group-text" for="inputGroupSelect01">수량</label>
+                        </div>
+                        <select class="custom-select" id="inputGroupSelect01">
+                            <option selected> -- 수량을 선택하세요 -- </option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                        </select>
+                    </div>
+
+                   <div class="input-group mb-3">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text" id="basic-addon2">주소</span>
+                        </div>
+                        <input type="text" id="addr" class="form-control">
+                    </div>
+
+                    <div class="input-group mb-3">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text" id="basic-addon3">전화번호</span>
+                        </div>
+                        <input type="text" id="phone" class="form-control">
+                    </div>
+
+                    <button type="button" onclick="order()" class="btn btn-primary">주문하기</button>
+                </div>
+            </form>
+        </div>
+
+        <div>
+            <table>
+                <thead>
+                <tr>
+                    <td>이름</td>
+                    <td>수량</td>
+                    <td>주소</td>
+                    <td>전화번호</td>
+                </tr>
+                </thead>
+                <tbody id="orderList">
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>
